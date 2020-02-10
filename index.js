@@ -7,10 +7,26 @@ const app = express()
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
 const pool = new pg.Pool()
 
+
+const rateLimit = (options) => {
+  const { windowMs, max, next, req, res } = options;
+  console.log('@windowsMS', windowMs);
+  console.log('max', max);
+  return test = (req, res, next) => {
+    console.log(req, res, next);
+    next();
+  }
+}
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 3
+});
+
+app.use(limiter);
+
 const queryHandler = (req, res, next) => {
-  console.log('@@@@@req', process.env.PGHOST);
   pool.query(req.sqlQuery).then((r) => {
-    console.log('!!!!!!r', r);
     return res.json(r.rows || [])
   }).catch(next)
 }
