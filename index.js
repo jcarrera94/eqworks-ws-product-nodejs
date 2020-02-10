@@ -1,5 +1,6 @@
 const express = require('express')
-const pg = require('pg')
+const pg = require('pg');
+require('dotenv').config();
 
 const app = express()
 // configs come from standard PostgreSQL env vars
@@ -7,7 +8,9 @@ const app = express()
 const pool = new pg.Pool()
 
 const queryHandler = (req, res, next) => {
+  console.log('@@@@@req', process.env.PGHOST);
   pool.query(req.sqlQuery).then((r) => {
+    console.log('!!!!!!r', r);
     return res.json(r.rows || [])
   }).catch(next)
 }
