@@ -2,20 +2,21 @@
 // import liveReloadPlugin from 'webpack-livereload-plugin';
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const liveReloadPlugin = require('webpack-livereload-plugin');
+const path = require('path');
 
 module.exports = {
-  entry: './src/client/index.js',
+  entry: path.resolve(__dirname, 'src', 'client', 'index.js'),
   output: {
-    path: '/',
+    path: path.resolve(__dirname, "dist"),
     filename: 'bundle.js'
   },
   mode: 'development',
   module: {
     rules: [
       {
-        use: 'babel-loader',
         test: /\.js$/,
-        exclude: /node_modules/
+        exclude: /node_modules/,
+        use: 'babel-loader'
       },
       {
         use: ['style-loader', 'css-loader'],
@@ -28,7 +29,8 @@ module.exports = {
             loader: 'style-loader'
           },
           {
-            loader: 'css-loader', options: {
+            loader: 'css-loader', 
+            options: {
               sourceMap: true
             }
           },

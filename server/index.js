@@ -38,7 +38,7 @@ const rateLimit = (options) => {
 
 const limiter = rateLimit({
   timeLimit: 60 * 1000,
-  max: 3,
+  max: 10,
 });
 
 app.use(limiter);

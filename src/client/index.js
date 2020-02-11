@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDom from 'react-dom';
 import './styles/main.scss';
 
 const App = () => {
@@ -10,7 +10,7 @@ const App = () => {
   )
 };
 
-render(
+ReactDom.render(
   <App />,
   document.getElementById('app')
 )
