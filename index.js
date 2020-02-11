@@ -9,18 +9,27 @@ const pool = new pg.Pool()
 
 
 const rateLimit = (options) => {
-  const { windowMs, max, next, req, res } = options;
-  console.log('@windowsMS', windowMs);
-  console.log('max', max);
+  const originalMax = options.max;
   return test = (req, res, next) => {
-    console.log(req, res, next);
-    next();
+    if (options.max <= 0) {
+      res.json({
+        message: 'error 429, too many request within 1 minute'
+      });
+    } else {
+      if (options.max === originalMax) {
+        setTimeout(() => {
+          options.max = 3;
+        }, options.timeLimit)
+      }
+      options.max--;
+      next();
+    }
   }
 }
 
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 3
+  timeLimit: 1 * 60 * 200,
+  max: 3,
 });
 
 app.use(limiter);
