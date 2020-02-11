@@ -1,11 +1,20 @@
-const express = require('express')
+const express = require('express');
 const pg = require('pg');
+
+const webpack = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const webpackConfig = require('../webpack.config');
+
+// import webpack from 'webpack';
+// import webpackDevMiddleware from 'webpack-dev-middleware';
+// import webpackConfig from '../webpack.config';
+
 require('dotenv').config();
 
-const app = express()
+const app = express();
 // configs come from standard PostgreSQL env vars
 // https://www.postgresql.org/docs/9.6/static/libpq-envars.html
-const pool = new pg.Pool()
+const pool = new pg.Pool();
 
 
 const rateLimit = (options) => {
@@ -28,11 +37,13 @@ const rateLimit = (options) => {
 }
 
 const limiter = rateLimit({
-  timeLimit: 1 * 60 * 200,
+  timeLimit: 60 * 1000,
   max: 3,
 });
 
 app.use(limiter);
+
+app.use(webpackDevMiddleware(webpack(webpackConfig)));
 
 const queryHandler = (req, res, next) => {
   pool.query(req.sqlQuery).then((r) => {
