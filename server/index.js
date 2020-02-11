@@ -25,9 +25,10 @@ const rateLimit = (options) => {
         message: 'error 429, too many request within 1 minute'
       });
     } else {
+      console.log('hits left:', options.max);
       if (options.max === originalMax) {
         setTimeout(() => {
-          options.max = 3;
+          options.max = originalMax;
         }, options.timeLimit)
       }
       options.max--;
@@ -51,9 +52,9 @@ const queryHandler = (req, res, next) => {
   }).catch(next)
 }
 
-app.get('/', (req, res) => {
-  res.send('Welcome to EQ Works 😎')
-})
+// app.get('/', (req, res) => {
+//   res.send('Welcome to EQ Works 😎')
+// })
 
 app.get('/events/hourly', (req, res, next) => {
   req.sqlQuery = `
