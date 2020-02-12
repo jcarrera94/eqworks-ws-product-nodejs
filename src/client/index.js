@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactDom from 'react-dom';
-import './styles/main.scss';
+import { BrowserRouter } from 'react-router-dom';
+import Layout from './components/layout';
+require('./styles/index.scss')
+
 
 const App = () => {
   return (
-    <div>
-      Hello World
-    </div>
+    <BrowserRouter>
+      <Layout/>
+    </BrowserRouter>
   )
 };
 
