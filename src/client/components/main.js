@@ -4,6 +4,9 @@ import Home from './home';
 import Charts from './charts'
 
 const Main = () => {
+
+  
+
   return (
     <Switch>
       <Route exact path="/" component={Home}></Route>
