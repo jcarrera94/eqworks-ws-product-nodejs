@@ -36,4 +36,6 @@ export function useApplicationData() {
     })
   }, []);
 
+  return { state };
+
 }
