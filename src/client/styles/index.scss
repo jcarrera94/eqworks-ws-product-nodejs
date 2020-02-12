@@ -1,3 +1,5 @@
+@import './header.scss';
+
 html {
 	box-sizing: border-box;
 }
@@ -22,33 +24,11 @@ html {
   flex-grow: 1;
 }
 
-.header {
-  padding: 1rem 0 3rem;
+h2 {
+	margin-bottom: 1rem;
 }
 
-.title {
-  color: rgba(0,0,0,0.9);
-  size: 3rem;
-  text-decoration: none;
+p {
+	margin-bottom: 1.45rem;
 }
 
-.nav-list {
-  display: flex;
-  list-style-type: none;
-  margin: 0;
-}
-
-.nav-item {
-  color: #727272;
-  font-size: 0.9rem;
-  margin-right: 1.3rem;
-  text-decoration: none;
-}
-
-.nav-item:hover {
-  color: #505050
-}
-
-.active-nav-item {
-  color: #333333;
-}

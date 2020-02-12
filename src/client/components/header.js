@@ -4,7 +4,9 @@ import { NavLink } from 'react-router-dom';
 const Header = () => {
   return (
     <header className="header">
-      <h1 className="title">EQworks - Work Sample</h1>
+      <div className="title">
+        <NavLink to="/"><h1>EQworks - Work Sample</h1></NavLink>
+      </div>
       <nav>
         <ul className="nav-list">
           <li><NavLink className="nav-item" activeClassName="active-nav-item" exact to="/">Home</NavLink></li>
@@ -13,6 +15,7 @@ const Header = () => {
           <li><NavLink className="nav-item" activeClassName="active-nav-item" to="/geo-nav">GeoNav</NavLink></li>
         </ul>
       </nav>
+      <hr />
     </header>
   )
 }
