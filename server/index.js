@@ -1,9 +1,10 @@
 const express = require('express');
 const pg = require('pg');
+const path = require('path');
 
-const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware');
-const webpackConfig = require('../webpack.config');
+// const webpack = require('webpack');
+// const webpackDevMiddleware = require('webpack-dev-middleware');
+// const webpackConfig = require('../webpack.config');
 
 // import webpack from 'webpack';
 // import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -42,9 +43,9 @@ const limiter = rateLimit({
   max: 10,
 });
 
-app.use(limiter);
+app.use(express.static(path.resolve(__dirname, '../dist')));
 
-app.use(webpackDevMiddleware(webpack(webpackConfig)));
+app.use(limiter);
 
 const queryHandler = (req, res, next) => {
   pool.query(req.sqlQuery).then((r) => {
@@ -52,9 +53,10 @@ const queryHandler = (req, res, next) => {
   }).catch(next)
 }
 
-// app.get('/', (req, res) => {
-//   res.send('Welcome to EQ Works 😎')
-// })
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../src/client/index.html"));
+});
+
 
 app.get('/events/hourly', (req, res, next) => {
   req.sqlQuery = `

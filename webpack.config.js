@@ -1,7 +1,7 @@
 // import htmlWebpackPlugin from 'html-webpack-plugin';
 // import liveReloadPlugin from 'webpack-livereload-plugin';
-const htmlWebpackPlugin = require('html-webpack-plugin');
-const liveReloadPlugin = require('webpack-livereload-plugin');
+// const htmlWebpackPlugin = require('html-webpack-plugin');
+// const liveReloadPlugin = require('webpack-livereload-plugin');
 const path = require('path');
 
 module.exports = {
@@ -43,11 +43,5 @@ module.exports = {
         ]
       }
     ]
-  },
-  plugins: [
-    new htmlWebpackPlugin({
-      template: './src/client/index.html'
-    }),
-    new liveReloadPlugin()
-  ]
+  }
 }
