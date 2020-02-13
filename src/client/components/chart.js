@@ -2,6 +2,39 @@ import React, { Component, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 
+const chart_options = {
+  title: {
+    display: true,
+    fontSize: 25
+  },
+  legend: {
+    display: true,
+    position: 'bottom'
+  },
+  tooltips: {
+    intersect: true,
+    mode: 'point',
+    callbacks: {
+      label: function (tooltipItem, data) {
+        let label = data.datasets[tooltipItem.datasetIndex].label || '';
+        if (label) {
+          switch (label) {
+            case 'Revenue':
+              label += ': $' + parseFloat(tooltipItem.value).toFixed(2);
+              break;
+            case 'Impressions':
+              label += ': ' + (parseFloat(tooltipItem.value) * 1000).toFixed(2).toString().replace(/\d(?=(\d{3})+\.)/g, '$&,').slice(0, -3);
+              break;
+            default:
+              label += ': ' + parseFloat(tooltipItem.value);
+          }
+        }
+        return label;
+      }
+    }
+  }
+}
+
 const ChartId = (props) => {
 
   let { chart_id } = useParams();
@@ -16,6 +49,11 @@ const ChartId = (props) => {
   useEffect(() => {
     setState({ ...state, chart_id: chart_id });
   }, [chart_id]);
+
+  useEffect(() => {
+    let chartData = getChartData(props.api_data, state.chart_id, state.data_type);
+    setData({ ...data, ...chartData });
+  }, [state])
 
 
   useEffect(() => {
@@ -41,38 +79,7 @@ const ChartId = (props) => {
       chart_data: {
         datasets: []
       },
-      chart_options: {
-        title: {
-          display: true,
-          fontSize: 25
-        },
-        legend: {
-          display: true,
-          position: 'bottom'
-        },
-        tooltips: {
-          intersect: true,
-          mode: 'point',
-          callbacks: {
-            label: function (tooltipItem, data) {
-              let label = data.datasets[tooltipItem.datasetIndex].label || '';
-              if (label) {
-                switch (label) {
-                  case 'Revenue':
-                    label += ': $' + parseFloat(tooltipItem.value).toFixed(2);
-                    break;
-                  case 'Impressions':
-                    label += ': ' + (parseFloat(tooltipItem.value) * 1000).toFixed(2).toString().replace(/\d(?=(\d{3})+\.)/g, '$&,').slice(0, -3);
-                    break;
-                  default:
-                    label += ': ' + parseFloat(tooltipItem.value);
-                }
-              }
-              return label;
-            }
-          }
-        }
-      }
+      chart_options
     };
 
     const hourlyBoiler = [
@@ -109,8 +116,6 @@ const ChartId = (props) => {
           obj.chart_data.datasets[0].data = arrData;
           obj.chart_data.datasets[0].label = "Events";
           obj.chart_data.datasets[0].backgroundColor = "orange";
-          obj.chart_data.datasets[0].hoverBorderWidth = 1,
-            obj.chart_data.datasets[0].hoverBorderColor = "#000";
         }
         break;
       case 'stats':
@@ -135,8 +140,6 @@ const ChartId = (props) => {
             obj.chart_data.datasets[ix].data = objData[item.id];
             obj.chart_data.datasets[ix].label = hourlyBoiler[ix].label;
             obj.chart_data.datasets[ix].backgroundColor = hourlyBoiler[ix].color;
-            // obj.chart_data.datasets[ix].hoverBorderWidth = 1;
-            // obj.chart_data.datasets[ix].hoverBorderColor = "#000";
             obj.chart_data.datasets[ix].yAxisID = ix ? 'y-axis-2' : 'y-axis-1';
           })
           obj.chart_options.scales = {
@@ -221,15 +224,16 @@ class Chart extends Component {
       chart_data: props.data.chart_data,
       chart_options: props.data.chart_options
     }
-    console.log('@@@chartpropsoptions', this.state.chart_options)
-    console.log('@@@chartpropsdata', this.state.chart_data)
   }
 
-  // static defaultProps = {
-  //   displayTitle: true,
-  //   displayLegend: true,
-  //   legendPosition: 'right'
-  // }
+  componentDidUpdate(prevProps, prevState) {
+    console.log('Prev', prevProps);
+    console.log('This', this.props);
+    
+    if (prevProps !== this.props) {
+      this.setState({...this.state, chart_data: this.props.data.chart_data, chart_options: this.props.data.chart_options});
+    }
+  }
 
   render() {
     return (
