@@ -10,10 +10,17 @@ const Chart = (props) => {
       {
         label: 'Events',
         data: ['33', '29', '31', '40', '35', '36', '33'],
-        backgroundColor: ["red"],
+        backgroundColor: "green",
         hoverBorderWidth: 3,
         hoverBorderColor: "#000"
-      }
+      },
+      {
+        label: 'clicks',
+        data: ['3300', '2900', '3100', '4000', '3500', '3600', '3300'],
+        backgroundColor: "blue",
+        hoverBorderWidth: 3,
+        hoverBorderColor: "#000"
+      },
     ]
   };
 
