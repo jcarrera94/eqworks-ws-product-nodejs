@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useRouteMatch, Switch, Route } from 'react-router-dom';
+import Chart from './chart';
 
 const Charts = (props) => {
 
@@ -7,7 +8,6 @@ const Charts = (props) => {
 
   return (
     <div>
-      <h2>Type of Charts</h2>
       <ul className="chart-list">
         <li><NavLink exact className="chart-item" activeClassName="active-chart-item" to={`${url}/events`}>Events</NavLink></li>
         <li><NavLink exact className="chart-item" activeClassName="active-chart-item" to={`${url}/stats`}>Stats</NavLink></li>
@@ -17,7 +17,7 @@ const Charts = (props) => {
         <Route exact path={path}>
         </Route>
         <Route path={`${path}/:chart_id`}>
-          <Chart />
+          <Chart state={props.state}/>
         </Route>
       </Switch>
     </div>
