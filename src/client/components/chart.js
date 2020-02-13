@@ -1,4 +1,5 @@
 import React, { Component, useState, useEffect } from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 
@@ -78,26 +79,27 @@ const ChartId = (props) => {
   let { chart_id } = useParams();
 
   const [state, setState] = useState({
-    chart_id: chart_id,
+    chart_id: 'events',
     data_occurrence: 'daily'
   });
 
   const [data, setData] = useState({});
+  
+  useEffect(() => {
+    let chartData = getChartData(props.api_data, state.chart_id, state.occurrence);
+    setData({ ...data, ...chartData });
+  }, []);
 
   useEffect(() => {
     setState({ ...state, chart_id: chart_id });
   }, [chart_id]);
 
   useEffect(() => {
+    //axios calls
+    axios
     let chartData = getChartData(props.api_data, state.chart_id, state.data_occurrence);
     setData({ ...data, ...chartData });
-  }, [state])
-
-
-  useEffect(() => {
-    let chartData = getChartData(props.api_data, state.chart_id, state.occurrence);
-    setData({ ...data, ...chartData });
-  }, []);
+  }, [state]);
 
   const scaleNumber = (str, impressions = false) => {
     let result = impressions ? (str / 1000).toFixed(3) : str;
@@ -181,31 +183,17 @@ const ChartId = (props) => {
 
     return obj;
   }
-  // let data = {
-  //   labels: ['1', '2', '3', '4', '5', '6', '7'],
-  //   datasets: [
-  //     {
-  //       label: 'Events',
-  //       data: [22, 29, '31', '40', '35', '36', '33'],
-  //       backgroundColor: "green",
-  //       hoverBorderWidth: 3,
-  //       hoverBorderColor: "#000"
-  //     },
-  //     {
-  //       label: 'clicks',
-  //       data: ['3300', '2900', '3100', '4000', '3500', '3600', '3300'],
-  //       backgroundColor: "blue",
-  //       hoverBorderWidth: 3,
-  //       hoverBorderColor: "#000"
-  //     },
-  //   ]
-  // };
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    console.log('ESO', e.target.innerText);
+  }
 
   return (
-    <div>
-      <h2>{state.chart_id}</h2>
+    <div className='chart'>
       {data.chart_type && <Chart data={data} />}
+      <button onClick={handleClick} className='button'>daily</button>
+      <button onClick={handleClick} className='button'>hourly</button>
     </div>
   )
 }
