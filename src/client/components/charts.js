@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useRouteMatch, Switch, Route } from 'react-router-dom';
-import Chart from './chart';
+import ChartId from './chart';
 
 const Charts = (props) => {
 
@@ -16,8 +16,8 @@ const Charts = (props) => {
       <Switch>
         <Route exact path={path}>
         </Route>
-        <Route path={`${path}/:chart_id`}>
-          <Chart state={props.state}/>
+        <Route exact path={`${path}/:chart_id`}>
+          <ChartId api_data={props.state}/>
         </Route>
       </Switch>
     </div>
