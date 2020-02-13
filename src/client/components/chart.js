@@ -3,35 +3,73 @@ import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 
 const chart_options = {
-  title: {
-    display: true,
-    fontSize: 25
-  },
-  legend: {
-    display: true,
-    position: 'bottom'
-  },
-  tooltips: {
-    intersect: true,
-    mode: 'point',
-    callbacks: {
-      label: function (tooltipItem, data) {
-        let label = data.datasets[tooltipItem.datasetIndex].label || '';
-        if (label) {
-          switch (label) {
-            case 'Revenue':
-              label += ': $' + parseFloat(tooltipItem.value).toFixed(2);
-              break;
-            case 'Impressions':
-              label += ': ' + (parseFloat(tooltipItem.value) * 1000).toFixed(2).toString().replace(/\d(?=(\d{3})+\.)/g, '$&,').slice(0, -3);
-              break;
-            default:
-              label += ': ' + parseFloat(tooltipItem.value);
+  default: {
+    title: {
+      display: true,
+      fontSize: 25
+    },
+    legend: {
+      display: true,
+      position: 'bottom'
+    },
+    tooltips: {
+      intersect: true,
+      mode: 'point',
+      callbacks: {
+        label: function (tooltipItem, data) {
+          let label = data.datasets[tooltipItem.datasetIndex].label || '';
+          if (label) {
+            switch (label) {
+              case 'Revenue':
+                label += ': $' + parseFloat(tooltipItem.value).toFixed(2);
+                break;
+              case 'Impressions':
+                label += ': ' + (parseFloat(tooltipItem.value) * 1000).toFixed(2).toString().replace(/\d(?=(\d{3})+\.)/g, '$&,').slice(0, -3);
+                break;
+              default:
+                label += ': ' + parseFloat(tooltipItem.value);
+            }
           }
+          return label;
         }
-        return label;
       }
     }
+  },
+  stats: {
+    yAxes: [
+      {
+        type: 'linear',
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Revenue - in Dollars ($)',
+        },
+        position: 'left',
+        id: 'y-axis-1',
+        gridLines: {
+          display: false
+        },
+        labels: {
+          show: true
+        }
+      },
+      {
+        type: 'linear',
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Impressions (in 1000s) & Clicks'
+        },
+        position: 'right',
+        id: 'y-axis-2',
+        gridLines: {
+          display: false
+        },
+        labels: {
+          show: true
+        }
+      }
+    ]
   }
 }
 
@@ -41,7 +79,7 @@ const ChartId = (props) => {
 
   const [state, setState] = useState({
     chart_id: chart_id,
-    data_type: 'daily'
+    data_occurrence: 'daily'
   });
 
   const [data, setData] = useState({});
@@ -51,35 +89,27 @@ const ChartId = (props) => {
   }, [chart_id]);
 
   useEffect(() => {
-    let chartData = getChartData(props.api_data, state.chart_id, state.data_type);
+    let chartData = getChartData(props.api_data, state.chart_id, state.data_occurrence);
     setData({ ...data, ...chartData });
   }, [state])
 
 
   useEffect(() => {
-    if (chart_id === 'poi') {
-      setState({ ...state, data_type: null });
-      //get data for poi
-    } else {
-      let chartData = getChartData(props.api_data, state.chart_id, state.data_type);
-      setData({ ...data, ...chartData });
-    }
+    let chartData = getChartData(props.api_data, state.chart_id, state.occurrence);
+    setData({ ...data, ...chartData });
   }, []);
 
   const scaleNumber = (str, impressions = false) => {
-    // let res = parseFloat(str).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    // res = money ? res : res.slice(0, -3);
     let result = impressions ? (str / 1000).toFixed(3) : str;
-
     return result;
   }
 
-  const getChartData = (rawData, chartId, dataType) => {
+  const getChartData = (rawData, chartId, dataOccurrence) => {
     const obj = {
       chart_data: {
         datasets: []
       },
-      chart_options
+      chart_options: chart_options.default
     };
 
     const hourlyBoiler = [
@@ -102,12 +132,12 @@ const ChartId = (props) => {
 
     switch (chartId) {
       case 'events':
-        if (dataType === 'daily') {
+        if (dataOccurrence === 'daily') {
           obj.chart_options.title.text = 'Daily Events'
           obj.chart_type = 'bar';
           const arrLabels = [];
           const arrData = [];
-          for (let item of rawData[chartId][dataType]) {
+          for (let item of rawData[chartId][dataOccurrence]) {
             arrLabels.push(item.date.slice(0, 10))
             arrData.push(item.events);
           }
@@ -119,7 +149,7 @@ const ChartId = (props) => {
         }
         break;
       case 'stats':
-        if (dataType === 'daily') {
+        if (dataOccurrence === 'daily') {
           obj.chart_options.title.text = 'Daily Stats'
           obj.chart_type = 'bar';
           const arrLabels = [];
@@ -128,7 +158,7 @@ const ChartId = (props) => {
             clicks: [],
             revenue: []
           };
-          for (let item of rawData[chartId][dataType]) {
+          for (let item of rawData[chartId][dataOccurrence]) {
             arrLabels.push(item.date.slice(0, 10))
             objData.impressions.push(scaleNumber(item.impressions, true));
             objData.clicks.push(item.clicks);
@@ -142,42 +172,7 @@ const ChartId = (props) => {
             obj.chart_data.datasets[ix].backgroundColor = hourlyBoiler[ix].color;
             obj.chart_data.datasets[ix].yAxisID = ix ? 'y-axis-2' : 'y-axis-1';
           })
-          obj.chart_options.scales = {
-            yAxes: [
-              {
-                type: 'linear',
-                display: true,
-                scaleLabel: {
-                  display: true,
-                  labelString: 'Revenue - in Dollars ($)',
-                },
-                position: 'left',
-                id: 'y-axis-1',
-                gridLines: {
-                  display: false
-                },
-                labels: {
-                  show: true
-                }
-              },
-              {
-                type: 'linear',
-                display: true,
-                scaleLabel: {
-                  display: true,
-                  labelString: 'Impressions (in 1000s) & Clicks'
-                },
-                position: 'right',
-                id: 'y-axis-2',
-                gridLines: {
-                  display: false
-                },
-                labels: {
-                  show: true
-                }
-              }
-            ]
-          };
+          obj.chart_options.scales = chart_options.stats;
         }
         break;
       case 'poi':
@@ -229,9 +224,9 @@ class Chart extends Component {
   componentDidUpdate(prevProps, prevState) {
     console.log('Prev', prevProps);
     console.log('This', this.props);
-    
+
     if (prevProps !== this.props) {
-      this.setState({...this.state, chart_data: this.props.data.chart_data, chart_options: this.props.data.chart_options});
+      this.setState({ ...this.state, chart_data: this.props.data.chart_data, chart_options: this.props.data.chart_options });
     }
   }
 
