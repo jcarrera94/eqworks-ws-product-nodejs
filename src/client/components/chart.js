@@ -18,20 +18,23 @@ const ChartId = (props) => {
   }, [chart_id]);
   
   
-  useEffect(async () => {
+  useEffect(() => {
     if (chart_id === 'poi') {
       setState({ ...state, data_type: null});
       //get data for poi
-      console.log('first mount', state.chart_id, state.data_type);
     } else {
-      let chartData = await getChartData(props.api_data, state.chart_id, state.data_type);
-      setData({ ...data, chartData });
-      console.log('!!!!!whats the data', data);
+      let chartData = getChartData(props.api_data, state.chart_id, state.data_type);
+      setData({ ...data, ...chartData });
     }
   }, []);
 
+  const convertNumber = (str, money = false) => {
+    let res = parseFloat(str).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    res = money ? res : res.slice(0, -3);
+    return (money ? '$' : '') +  res;
+  }
+
   const getChartData = (rawData, chartId, dataType) => {
-    console.log('@@@@@Did i make it here?????', rawData, chartId, dataType);
     const obj = {
       chart_data: {
         datasets: [{}]
@@ -41,13 +44,15 @@ const ChartId = (props) => {
     switch (chartId) {
       case 'events':
         if (dataType === 'daily') {
-          console.log('Inside switch', obj)
           obj.chart_type = 'bar';
-          const arr = [];
+          const arrLabels = [];
+          const arrData = [];
           for (let item of rawData[chartId][dataType]) {
-            arr.push({x: item.date.slice(0,10), y: item.events});
+            arrLabels.push(item.date.slice(0, 10))
+            arrData.push(item.events);
           }
-          obj.chart_data.datasets[0].data = arr;
+          obj.chart_data.labels = arrLabels;
+          obj.chart_data.datasets[0].data = arrData;
           obj.chart_data.datasets[0].label = "Events";
           obj.chart_data.datasets[0].backgroundColor = "orange";
           obj.chart_data.datasets[0].hoverBorderWidth = 3,
@@ -55,12 +60,26 @@ const ChartId = (props) => {
         }
         break;
       case 'stats':
+          if (dataType === 'daily') {
+            obj.chart_type = 'bar';
+            const arrLabels = [];
+            const arrData = [];
+            for (let item of rawData[chartId][dataType]) {
+              arrLabels.push(item.date.slice(0, 10))
+              arrData.push({impressions: convertNumber(item.impressions), clicks: convertNumber(item.clicks), revenue: convertNumber(item.revenue, true)});
+            }
+            console.log('@@@@@REV',arrData);
+            obj.chart_data.labels = arrLabels;
+            obj.chart_data.datasets[0].data = arrData;
+            obj.chart_data.datasets[0].label = "Events";
+            obj.chart_data.datasets[0].backgroundColor = "orange";
+            obj.chart_data.datasets[0].hoverBorderWidth = 3,
+            obj.chart_data.datasets[0].hoverBorderColor= "#000";
+          }
         break;
       case 'poi': 
         break;
     }
-
-    console.log('@@@@@obj after', obj)
 
     return obj;
   }
