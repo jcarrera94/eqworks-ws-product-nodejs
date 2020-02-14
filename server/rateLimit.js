@@ -2,9 +2,7 @@ const rateLimit = (options) => {
   const originalMax = options.max;
   return test = (req, res, next) => {
     if (options.max <= 0) {
-      res.json({
-        message: 'error 429, too many request within 1 minute'
-      });
+      res.status(429).end();
     } else {
       console.log('hits left:', options.max);
       if (options.max === originalMax) {

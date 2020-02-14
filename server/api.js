@@ -8,7 +8,7 @@ const pool = new pg.Pool();
 
 const limiter = rateLimit({
   timeLimit: 60 * 1000,
-  max: 10,
+  max: 1000,
 });
 
 router.use(limiter)

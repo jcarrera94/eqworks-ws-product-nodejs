@@ -1,0 +1,35 @@
+.chart-list {
+  display: flex;
+  justify-content: space-evenly;
+  list-style-type: none;
+  margin: 1rem 0;
+  
+  .chart-item {
+    font-size: 1rem;
+    text-decoration: none;
+    padding:0.35em 1.2em;
+    border: 0.1em solid #121212;
+    border-radius: 0.35em;
+    box-sizing: border-box;
+    color: #121212;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  
+  .chart-item:hover {
+    color: #616161;
+    border: 0.1em solid #616161;
+  }
+  
+  .active-chart-item {
+    background-color: #121212;
+    color: #eeeeee;
+  }
+}
+
+
+.text {
+  width: 100%;
+  text-align: center;
+  margin-top: 38px;
+}
