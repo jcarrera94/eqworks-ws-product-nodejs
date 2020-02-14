@@ -79,17 +79,15 @@ const chart_options = {
       xAxes: [
         {
           type: 'time',
-          distribution: 'series',
-          // offset: true,
+          time: {
+            unit: 'hour',
+          },
+          distribution: 'linear',
           ticks: {
             major: {
               enabled: true,
             },
             source: 'auto',
-            autoSkip: true,
-            // autoSkipPadding: 75,
-            // maxRotation: 0,
-            // sampleSize: 100
           }
         }
       ],
@@ -150,9 +148,9 @@ const ChartId = (props) => {
 
   const transformDate = (dateStr, hour) => {
     if (hour < 10) {
-      return dateStr.slice(0, -12) + hour;
+      return dateStr.slice(0, -12) + hour + ':00:00.000Z';
     } else {
-      return dateStr.slice(0, -11) + hour;
+      return dateStr.slice(0, -11) + hour + ':00:00.000Z';
     }
   }
 
