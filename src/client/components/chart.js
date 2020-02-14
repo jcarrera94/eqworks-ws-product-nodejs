@@ -13,6 +13,8 @@ const chart_options = {
       display: true,
       position: 'bottom'
     },
+  },
+  stats_daily: {
     tooltips: {
       intersect: true,
       mode: 'point',
@@ -24,7 +26,7 @@ const chart_options = {
               case 'Revenue':
                 label += ': $' + parseFloat(tooltipItem.value).toFixed(2);
                 break;
-              case 'Impressions':
+              case 'Impressions in 1,000s':
                 label += ': ' + (parseFloat(tooltipItem.value) * 1000).toFixed(2).toString().replace(/\d(?=(\d{3})+\.)/g, '$&,').slice(0, -3);
                 break;
               default:
@@ -34,43 +36,80 @@ const chart_options = {
           return label;
         }
       }
+    },
+    scales: {
+      yAxes: [
+        {
+          type: 'linear',
+          display: true,
+          scaleLabel: {
+            display: true,
+            labelString: 'Revenue - in Dollars ($)',
+          },
+          position: 'left',
+          id: 'y-axis-1',
+          gridLines: {
+            display: false
+          },
+          labels: {
+            show: true
+          }
+        },
+        {
+          type: 'linear',
+          display: true,
+          scaleLabel: {
+            display: true,
+            labelString: 'Impressions (in 1,000s) & Clicks'
+          },
+          position: 'right',
+          id: 'y-axis-2',
+          gridLines: {
+            display: false
+          },
+          labels: {
+            show: true
+          }
+        }
+      ]
     }
   },
-  stats: {
-    yAxes: [
-      {
-        type: 'linear',
-        display: true,
-        scaleLabel: {
-          display: true,
-          labelString: 'Revenue - in Dollars ($)',
-        },
-        position: 'left',
-        id: 'y-axis-1',
-        gridLines: {
-          display: false
-        },
-        labels: {
-          show: true
+  events_hourly: {
+    scales: {
+      xAxes: [
+        {
+          type: 'time',
+          distribution: 'series',
+          // offset: true,
+          ticks: {
+            major: {
+              enabled: true,
+            },
+            source: 'auto',
+            autoSkip: true,
+            // autoSkipPadding: 75,
+            // maxRotation: 0,
+            // sampleSize: 100
+          }
         }
-      },
-      {
-        type: 'linear',
-        display: true,
-        scaleLabel: {
-          display: true,
-          labelString: 'Impressions (in 1000s) & Clicks'
-        },
-        position: 'right',
-        id: 'y-axis-2',
-        gridLines: {
-          display: false
-        },
-        labels: {
-          show: true
+      ],
+      yAxes: [
+        {
+          type: 'linear',
+          gridLines: {
+            drawBorder: false
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Events hourly'
+          }
         }
-      }
-    ]
+      ]
+    },
+    tooltips: {
+      intersect: false,
+      mode: 'index'
+    }
   }
 }
 
@@ -84,10 +123,10 @@ const ChartId = (props) => {
   });
 
   const [data, setData] = useState({});
-  
+
   useEffect(() => {
-    let chartData = getChartData(props.api_data, state.chart_id, state.occurrence);
-    setData({ ...data, ...chartData });
+    let chartData = getChartData(props.api_data, state.chart_id, state.data_occurrence);
+    setData(chartData);
   }, []);
 
   useEffect(() => {
@@ -96,9 +135,12 @@ const ChartId = (props) => {
 
   useEffect(() => {
     //axios calls
-    axios
-    let chartData = getChartData(props.api_data, state.chart_id, state.data_occurrence);
-    setData({ ...data, ...chartData });
+    axios.get(`/api/${state.chart_id}${state.chart_id === 'poi' ? '' : `/${state.data_occurrence}`}`)
+      .then((res) => {
+        console.log('@!@!@BEFORECALL', data.chart_options);
+        let chartData = getChartData(res.data, state.chart_id, state.data_occurrence, true);
+        setData(chartData);
+      }).catch(err => console.error(err));
   }, [state]);
 
   const scaleNumber = (str, impressions = false) => {
@@ -106,7 +148,15 @@ const ChartId = (props) => {
     return result;
   }
 
-  const getChartData = (rawData, chartId, dataOccurrence) => {
+  const transformDate = (dateStr, hour) => {
+    if (hour < 10) {
+      return dateStr.slice(0, -12) + hour;
+    } else {
+      return dateStr.slice(0, -11) + hour;
+    }
+  }
+
+  const getChartData = (rawData, chartId, dataOccurrence, update = false) => {
     const obj = {
       chart_data: {
         datasets: []
@@ -114,7 +164,7 @@ const ChartId = (props) => {
       chart_options: chart_options.default
     };
 
-    const hourlyBoiler = [
+    const statsBoiler = [
       {
         id: 'revenue',
         label: 'Revenue',
@@ -122,7 +172,7 @@ const ChartId = (props) => {
       },
       {
         id: 'impressions',
-        label: 'Impressions',
+        label: 'Impressions in 1,000s',
         color: "blue",
       },
       {
@@ -139,7 +189,7 @@ const ChartId = (props) => {
           obj.chart_type = 'bar';
           const arrLabels = [];
           const arrData = [];
-          for (let item of rawData[chartId][dataOccurrence]) {
+          for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
             arrLabels.push(item.date.slice(0, 10))
             arrData.push(item.events);
           }
@@ -148,9 +198,30 @@ const ChartId = (props) => {
           obj.chart_data.datasets[0].data = arrData;
           obj.chart_data.datasets[0].label = "Events";
           obj.chart_data.datasets[0].backgroundColor = "orange";
+        } else {
+          obj.chart_options = { ...obj.chart_options, ...chart_options.events_hourly };
+          obj.chart_options.title.text = 'Hourly Events';
+          obj.chart_type = 'line';
+          const arrLabels = [];
+          const arrData = [];
+          for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
+            arrLabels.push(transformDate(item.date, item.hour));
+            arrData.push(item.events);
+          }
+          obj.chart_data.labels = arrLabels;
+          obj.chart_data.datasets.push({});
+          obj.chart_data.datasets[0].data = arrData;
+          obj.chart_data.datasets[0].type = 'line';
+          obj.chart_data.datasets[0].pointRadius = 0;
+          obj.chart_data.datasets[0].lineTension = 0;
+          obj.chart_data.datasets[0].borderWidth = 2;
+          obj.chart_data.datasets[0].fill = false;
+          obj.chart_data.datasets[0].label = "Events";
+          obj.chart_data.datasets[0].borderColor = "orange";
         }
         break;
       case 'stats':
+        obj.chart_options = { ...obj.chart_options, ...chart_options.stats_daily };
         if (dataOccurrence === 'daily') {
           obj.chart_options.title.text = 'Daily Stats'
           obj.chart_type = 'bar';
@@ -160,33 +231,33 @@ const ChartId = (props) => {
             clicks: [],
             revenue: []
           };
-          for (let item of rawData[chartId][dataOccurrence]) {
+          for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
             arrLabels.push(item.date.slice(0, 10))
             objData.impressions.push(scaleNumber(item.impressions, true));
             objData.clicks.push(item.clicks);
             objData.revenue.push(item.revenue);
           }
           obj.chart_data.labels = arrLabels;
-          hourlyBoiler.forEach((item, ix) => {
+          statsBoiler.forEach((item, ix) => {
             obj.chart_data.datasets.push({});
             obj.chart_data.datasets[ix].data = objData[item.id];
-            obj.chart_data.datasets[ix].label = hourlyBoiler[ix].label;
-            obj.chart_data.datasets[ix].backgroundColor = hourlyBoiler[ix].color;
+            obj.chart_data.datasets[ix].label = statsBoiler[ix].label;
+            obj.chart_data.datasets[ix].backgroundColor = statsBoiler[ix].color;
             obj.chart_data.datasets[ix].yAxisID = ix ? 'y-axis-2' : 'y-axis-1';
           })
-          obj.chart_options.scales = chart_options.stats;
+        } else {
         }
         break;
       case 'poi':
         break;
     }
-
+    console.log('AFTERCAL', obj)
     return obj;
   }
 
   const handleClick = (e) => {
     e.preventDefault();
-    console.log('ESO', e.target.innerText);
+    setState({ ...state, data_occurrence: e.target.innerText });
   }
 
   return (
@@ -207,21 +278,22 @@ class Chart extends Component {
       chart_data: props.data.chart_data,
       chart_options: props.data.chart_options
     }
+    this.count = 0;
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    console.log('Prev', prevProps);
-    console.log('This', this.props);
-
+  componentDidUpdate(prevProps) {
     if (prevProps !== this.props) {
+      console.log(this.props, 's')
       this.setState({ ...this.state, chart_data: this.props.data.chart_data, chart_options: this.props.data.chart_options });
     }
   }
 
   render() {
+    this.count++;
     return (
       <div className="chart">
         <Bar
+          key={`${this.props.data.chart_type}--${this.count}`}
           data={this.state.chart_data}
           options={this.state.chart_options}
         />
