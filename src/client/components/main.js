@@ -4,6 +4,8 @@ import { useApplicationData } from '../hooks/useApplicationData';
 import Home from './home';
 import Charts from './charts';
 import Table from './table';
+import GeoNav from './geo_nav';
+
 
 const Main = () => {
 
@@ -17,6 +19,9 @@ const Main = () => {
       </Route>/>
       <Route path="/table">
         <Table state={state}/>
+      </Route>/>
+      <Route path="/geo-nav">
+        <GeoNav />
       </Route>/>
     </Switch>
   )

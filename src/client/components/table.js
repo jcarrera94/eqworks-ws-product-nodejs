@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Fuse from 'fuse.js';
+import table_constants from './static_props/table_options';
 
 class Table extends Component {
   constructor(props) {
@@ -24,7 +25,7 @@ class Table extends Component {
   }
 
   handleChange = (e) => {
-    const { fuzzySearchOptions } = Table.constants;
+    const { fuzzySearchOptions } = table_constants;
     const { data } = this.state;
     const { target: { value } } = e;
 
@@ -75,14 +76,3 @@ class Table extends Component {
 
 export default Table;
 
-Table.constants = {
-  fuzzySearchOptions: {
-    shouldSort: true,
-    threshold: 0.2,
-    location: 0,
-    distance: 100,
-    maxPatternLength: 150,
-    minMatchCharLength: 1,
-    keys: ['name', 'lat', 'lon']
-  }
-};
