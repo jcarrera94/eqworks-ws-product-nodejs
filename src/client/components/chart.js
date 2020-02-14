@@ -1,6 +1,6 @@
 import React, { Component, useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useRouteMatch, Switch, Route } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 
 const chart_options = {
@@ -126,6 +126,7 @@ const chart_options = {
 const ChartId = (props) => {
 
   let { chart_id } = useParams();
+  let { path, url } = useRouteMatch();
 
   const [state, setState] = useState({
     chart_id: 'events',
@@ -161,7 +162,7 @@ const ChartId = (props) => {
 
   const transformDate = (dateStr, hour) => {
     let res = new Date(dateStr);
-    res = res.getTime() + hour;
+    res = res.getTime() + (hour * 1000 * 60 * 60);
     return res;
   }
 
@@ -213,7 +214,7 @@ const ChartId = (props) => {
           obj.chart_type = 'line';
           const arrData = [];
           for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
-            arrData.push({x: transformDate(item.date, item.hour), y: item.events});
+            arrData.push({ x: transformDate(item.date, item.hour), y: item.events });
           }
           obj.chart_data.datasets.push({});
           obj.chart_data.datasets[0].data = arrData;
@@ -264,9 +265,9 @@ const ChartId = (props) => {
             revenue: []
           };
           for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
-            objData.impressions.push({x: transformDate(item.date, item.hour), y: scaleNumber(item.impressions, true)});
-            objData.clicks.push({x: transformDate(item.date, item.hour), y: item.clicks});
-            objData.revenue.push({x: transformDate(item.date, item.hour), y: item.revenue});
+            objData.impressions.push({ x: transformDate(item.date, item.hour), y: scaleNumber(item.impressions, true) });
+            objData.clicks.push({ x: transformDate(item.date, item.hour), y: item.clicks });
+            objData.revenue.push({ x: transformDate(item.date, item.hour), y: item.revenue });
           }
           statsBoiler.forEach((item, ix) => {
             obj.chart_data.datasets.push({});
@@ -296,9 +297,17 @@ const ChartId = (props) => {
 
   return (
     <div className='chart'>
-      {data.chart_type && <Chart data={data} />}
-      <button onClick={handleClick} className='button'>daily</button>
-      <button onClick={handleClick} className='button'>hourly</button>
+      <Switch>
+        <Route exact path="/charts/poi">
+          <h2>POI</h2>
+          <p>please refer to GeoNav to display the POI data</p>
+        </Route>
+        <Route exact path={`/charts/${chart_id}`}>
+          {data.chart_type && <Chart data={data} />}
+          <button onClick={handleClick} className='button'>daily</button>
+          <button onClick={handleClick} className='button'>hourly</button>
+        </Route>
+      </Switch>
     </div>
   )
 }
