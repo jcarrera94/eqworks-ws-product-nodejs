@@ -75,19 +75,28 @@ const chart_options = {
     }
   },
   events_hourly: {
+    tooltips: {
+      mode: 'point',
+      intersect: true,
+    },
     scales: {
       xAxes: [
         {
           type: 'time',
           time: {
-            unit: 'hour',
+            unit: 'day',
+            displayFormats: {
+              day: 'MMM D hA'
+            }
           },
-          distribution: 'linear',
+          distribution: 'series',
           ticks: {
             major: {
               enabled: true,
             },
             source: 'auto',
+            autoSkip: true,
+            autoSkipPadding: 75
           }
         }
       ],
@@ -99,7 +108,10 @@ const chart_options = {
           },
           scaleLabel: {
             display: true,
-            labelString: 'Events hourly'
+            labelString: '# of Events'
+          },
+          ticks: {
+            suggestedMax: 30
           }
         }
       ]
@@ -132,13 +144,14 @@ const ChartId = (props) => {
   }, [chart_id]);
 
   useEffect(() => {
-    //axios calls
     axios.get(`/api/${state.chart_id}${state.chart_id === 'poi' ? '' : `/${state.data_occurrence}`}`)
       .then((res) => {
-        console.log('@!@!@BEFORECALL', data.chart_options);
         let chartData = getChartData(res.data, state.chart_id, state.data_occurrence, true);
         setData(chartData);
-      }).catch(err => console.error(err));
+      }).catch(err => {
+        setData({});
+        alert(err);
+      });
   }, [state]);
 
   const scaleNumber = (str, impressions = false) => {
@@ -147,11 +160,9 @@ const ChartId = (props) => {
   }
 
   const transformDate = (dateStr, hour) => {
-    if (hour < 10) {
-      return dateStr.slice(0, -12) + hour + ':00:00.000Z';
-    } else {
-      return dateStr.slice(0, -11) + hour + ':00:00.000Z';
-    }
+    let res = new Date(dateStr);
+    res = res.getTime() + hour;
+    return res;
   }
 
   const getChartData = (rawData, chartId, dataOccurrence, update = false) => {
@@ -200,13 +211,10 @@ const ChartId = (props) => {
           obj.chart_options = { ...obj.chart_options, ...chart_options.events_hourly };
           obj.chart_options.title.text = 'Hourly Events';
           obj.chart_type = 'line';
-          const arrLabels = [];
           const arrData = [];
           for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
-            arrLabels.push(transformDate(item.date, item.hour));
-            arrData.push(item.events);
+            arrData.push({x: transformDate(item.date, item.hour), y: item.events});
           }
-          obj.chart_data.labels = arrLabels;
           obj.chart_data.datasets.push({});
           obj.chart_data.datasets[0].data = arrData;
           obj.chart_data.datasets[0].type = 'line';
@@ -216,6 +224,7 @@ const ChartId = (props) => {
           obj.chart_data.datasets[0].fill = false;
           obj.chart_data.datasets[0].label = "Events";
           obj.chart_data.datasets[0].borderColor = "orange";
+          obj.chart_data.datasets[0].backgroundColor = "orange";
         }
         break;
       case 'stats':
@@ -242,14 +251,41 @@ const ChartId = (props) => {
             obj.chart_data.datasets[ix].label = statsBoiler[ix].label;
             obj.chart_data.datasets[ix].backgroundColor = statsBoiler[ix].color;
             obj.chart_data.datasets[ix].yAxisID = ix ? 'y-axis-2' : 'y-axis-1';
-          })
+          });
         } else {
+          obj.chart_options.title.text = 'Hourly Stats';
+          obj.chart_type = 'line';
+          obj.chart_options.scales = { ...obj.chart_options.scales, xAxes: chart_options.events_hourly.scales.xAxes };
+          obj.chart_options.tooltips.intersect = false;
+          obj.chart_options.tooltips.mode = 'index';
+          const objData = {
+            impressions: [],
+            clicks: [],
+            revenue: []
+          };
+          for (let item of (update ? rawData : rawData[chartId][dataOccurrence])) {
+            objData.impressions.push({x: transformDate(item.date, item.hour), y: scaleNumber(item.impressions, true)});
+            objData.clicks.push({x: transformDate(item.date, item.hour), y: item.clicks});
+            objData.revenue.push({x: transformDate(item.date, item.hour), y: item.revenue});
+          }
+          statsBoiler.forEach((item, ix) => {
+            obj.chart_data.datasets.push({});
+            obj.chart_data.datasets[ix].data = objData[item.id];
+            obj.chart_data.datasets[ix].label = statsBoiler[ix].label;
+            obj.chart_data.datasets[ix].borderColor = statsBoiler[ix].color;
+            obj.chart_data.datasets[ix].backgroundColor = statsBoiler[ix].color;
+            obj.chart_data.datasets[ix].yAxisID = ix ? 'y-axis-2' : 'y-axis-1';
+            obj.chart_data.datasets[ix].type = 'line';
+            obj.chart_data.datasets[ix].pointRadius = 0;
+            obj.chart_data.datasets[ix].lineTension = 0;
+            obj.chart_data.datasets[ix].borderWidth = 2;
+            obj.chart_data.datasets[ix].fill = false;
+          });
         }
         break;
       case 'poi':
         break;
     }
-    console.log('AFTERCAL', obj)
     return obj;
   }
 
@@ -281,8 +317,9 @@ class Chart extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps !== this.props) {
-      console.log(this.props, 's')
+      console.log(this.props, 'b4')
       this.setState({ ...this.state, chart_data: this.props.data.chart_data, chart_options: this.props.data.chart_options });
+      console.log(this.props, 'after')
     }
   }
 

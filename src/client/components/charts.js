@@ -15,6 +15,7 @@ const Charts = (props) => {
       </ul>
       <Switch>
         <Route exact path={path}>
+          <div className="text">Please select a type of chart</div>
         </Route>
         <Route exact path={`${path}/:chart_id`}>
           <ChartId api_data={props.state}/>
