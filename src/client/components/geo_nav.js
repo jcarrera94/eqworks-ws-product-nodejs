@@ -6,7 +6,7 @@ const GeoNav = () => {
   return (
     <div className="center">
       <h3>Unfortunately I couldn't finish this feature</h3>
-      <p>Due to the complexity of the assignment I was not able to get to the geo visualization feature. However, I would've done it with <a className="click-me" href={link}>this approach</a>. All jokes aside I would've enjoyed trying to find an unique solutin to display the POI's (points of interest) with a google maps API. I also would've combined the logic of the table with the geo visualization feature so users could search for specific POIs and the map would render the specific results. </p>
+      <p>Due to the complexity of the assignment and the short amount of time I was not able to get to the geo visualization feature. However, I would've done it with <a className="click-me" href={link}>this approach</a>. All jokes aside I would've enjoyed trying to find an unique solution to display the POI's (points of interest) with a google maps API. I also would've combined the logic of the table with the geo visualization feature so users could search for specific POIs and the map would render the specific results. </p>
     </div>
   )
 }

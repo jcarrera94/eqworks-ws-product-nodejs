@@ -15,7 +15,7 @@
   "scripts": {
     "start:dev": "cross-env NODE_ENV=dev npm run watch & cross-env NODE_ENV=dev npm run watch-server",
     "watch-server": "nodemon server.js",
-    "server": "node server.js",
+    "start": "node server.js",
     "webpack": "./node_modules/.bin/webpack",
     "watch": "bash scripts/watch.sh"
   },
